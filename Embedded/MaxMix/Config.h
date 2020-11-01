@@ -55,6 +55,9 @@ static const uint64_t SERIAL_TIMEOUT = 10;
     static const uint8_t  PIN_ENCODER_SWITCH = 5; //5
     // OLED SDA - 18 //A4
     // OLED SCL - 19 //A5
+    static const uint8_t  KEY_COUNT = 6;
+    static const uint8_t  PIN_KEY_SWITCH[KEY_COUNT] = { 6, 7, 8, 9, 10, 11 };
+    static const uint16_t KEY_CODES[KEY_COUNT] = { KEY_MEDIA_PREV_TRACK, KEY_MEDIA_PLAY_PAUSE, KEY_MEDIA_NEXT_TRACK, KEY_F9, KEY_F10, KEY_F11 };
 #else
     #error Unsuported Platform Target.
 #endif
@@ -75,7 +78,7 @@ static const uint8_t DISPLAY_RESET = 4; // Reset pin # (or -1 if sharing Arduino
 static const uint32_t DISPLAY_SPEED = 400000;
 
 // --- Lighting
-static const uint8_t PIXELS_COUNT = 8;      // Number of pixels in ring
+static const uint8_t PIXELS_COUNT = 12;      // Number of pixels in ring
 static const uint8_t PIXELS_BRIGHTNESS = 96; // Master brightness of all the pixels. [0..255] Be carefull of the current draw on the USB port.
 
 // --- Rotary Encoder

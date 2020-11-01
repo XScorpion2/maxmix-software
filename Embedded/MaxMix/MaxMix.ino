@@ -41,6 +41,10 @@ bool g_DisplayAsleep;
 ButtonEvents g_EncoderButton;
 volatile ButtonEvent g_ButtonEvent;
 
+// Switch Buttons
+ButtonEvents g_KeyButtons[KEY_COUNT];
+volatile ButtonEvent g_KeyEvents[KEY_COUNT];
+
 // Rotary Encoder
 Rotary g_Encoder(PIN_ENCODER_OUTB, PIN_ENCODER_OUTA);
 int8_t g_PreviousSteps;
@@ -71,6 +75,12 @@ void timerIsr()
     {
         g_ButtonEvent = g_EncoderButton.event();
     }
+
+    for (uint8_t i = 0; i < KEY_COUNT; i++)
+    {
+        if (g_KeyEvents[i] == none && g_KeyButtons[i].update())
+            g_KeyEvents[i] = g_KeyButtons[i].event();
+    }
 }
 
 //********************************************************
@@ -99,6 +109,15 @@ void setup()
     g_EncoderButton.attach(PIN_ENCODER_SWITCH);
     g_EncoderButton.debounceTime(15);
     g_Encoder.begin(true);
+
+    // --- Buttons
+    for (uint8_t i = 0; i < KEY_COUNT; i++)
+    {
+        g_KeyButtons[i].attach(PIN_KEY_SWITCH[i], INPUT_PULLUP);
+        g_KeyButtons[i].debounceTime(5);
+    }
+
+    // --- Timers
     Timer1.initialize(1000);
     Timer1.attachInterrupt(timerIsr);
 }
@@ -129,6 +148,12 @@ void loop()
     }
 
     if (ProcessEncoderButton())
+    {
+        g_LastActivity = g_Now;
+        g_DisplayDirty = true;
+    }
+
+    if (ProcessKeyButtons())
     {
         g_LastActivity = g_Now;
         g_DisplayDirty = true;
@@ -417,6 +442,31 @@ bool ProcessEncoderButton()
     }
 
     return false;
+}
+
+bool ProcessKeyButtons()
+{
+    ButtonEvent keyEvents[KEY_COUNT] = { ButtonEvent::none, ButtonEvent::none, ButtonEvent::none, ButtonEvent::none, ButtonEvent::none, ButtonEvent::none };
+    cli();
+    for (uint8_t i = 0; i < KEY_COUNT; i++)
+    {
+        keyEvents[i] = g_KeyEvents[i];
+        g_KeyEvents[i] = ButtonEvent::none;
+    }
+    sei();
+
+    bool eventHappened = false;
+    for (uint8_t i = 0; i < KEY_COUNT; i++)
+    {
+        if (keyEvents[i] == ButtonEvent::tap || keyEvents[i] == ButtonEvent::doubleTap)
+        {
+            eventHappened = true;
+            Keyboard.press(KEY_CODES[i]);
+            Keyboard.release(KEY_CODES[i]);
+        }
+    }
+
+    return eventHappened;
 }
 
 //---------------------------------------------------------
